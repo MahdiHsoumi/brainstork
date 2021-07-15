@@ -13,7 +13,13 @@
             <b-form-select v-model="sort" :options="sorts"></b-form-select>
           </div>
         </b-col>
-        <b-col sm="12" md="6" lg="6" xl="4" v-for="i in 10" :key="i"
+        <b-col
+          sm="12"
+          md="6"
+          lg="6"
+          xl="4"
+          v-for="(contact, i) in contacts"
+          :key="i"
           ><ContactCard
             :firstname="contact.firstname"
             :lastname="contact.lastname"
@@ -31,13 +37,20 @@
         @click="showModal"
       ></b-icon-plus>
     </div>
-        <b-modal ref="add-modal" title="Add Contact">
-      <form ref="form" @submit.stop.prevent="handleSubmit">
+    <b-modal
+      ref="add-modal"
+      @show="resetModal"
+      @hidden="resetModal"
+      @ok="handleOk"
+      title="Add Contact"
+      id="add-modal-closing"
+    >
+      <form  ref="form" @submit.stop.prevent="handleSubmit">
         <b-form-group
           label="First Name"
           label-for="firstname-input"
           invalid-feedback="First Name is required"
-          :state="nameState"
+          :state="lastnameState"
         >
           <b-form-input
             id="firstname-input"
@@ -113,13 +126,6 @@ export default {
   },
   data() {
     return {
-      contact: {
-        firstname: "eray",
-        lastname: "tufan",
-        age: 26,
-        email: "eray.tufan@brainstork.com",
-        companyname: "brainstork",
-      },
       contactEmpty: {
         firstname: "",
         lastname: "",
@@ -139,8 +145,13 @@ export default {
       ],
     };
   },
+  computed: {
+    contacts() {
+      return this.$store.state.contacts;
+    },
+  },
   methods: {
-     showModal() {
+    showModal() {
       this.$refs["add-modal"].show();
     },
     checkFormValidity() {
@@ -148,14 +159,33 @@ export default {
       this.firstnameState = valid;
       return valid;
     },
+    resetModal() {
+      this.contactEmpty.firstname = "";
+      this.contactEmpty.lastname = "";
+      this.contactEmpty.age = null;
+      this.contactEmpty.email = "";
+      this.contactEmpty.companyname = "";
+      this.firstnameState = null;
+      this.lastnameState = null;
+      this.ageState = null;
+      this.emailState = null;
+      this.companynameState = null;
+    },
+    handleOk(bvModalEvt) {
+      // Prevent modal from closing
+      bvModalEvt.preventDefault();
+      // Trigger submit handler
+      this.handleSubmit();
+    },
     handleSubmit() {
       // Exit when the form isn't valid
       if (!this.checkFormValidity()) {
         return;
       }
-      // Hide the modal manually
+      this.$store.dispatch("addContact", Object.assign({}, this.contactEmpty));
+      this.$refs["add-modal"].hide();
       this.$nextTick(() => {
-        this.$bvModal.hide("edit-modal");
+        this.$bvModal.hide("add-modal-closing");
       });
     },
   },
@@ -174,7 +204,7 @@ export default {
   border-radius: 50%;
   border: 1px solid #0d6efd;
 }
-.add-contact-button:hover{
+.add-contact-button:hover {
   background-color: #0d6dfd2d;
 }
 </style>

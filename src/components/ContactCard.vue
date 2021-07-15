@@ -38,7 +38,7 @@
           label="First Name"
           label-for="firstname-input"
           invalid-feedback="First Name is required"
-          :state="nameState"
+          :state="lastnameState"
         >
           <b-form-input
             id="firstname-input"
