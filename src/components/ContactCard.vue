@@ -1,37 +1,38 @@
 <template>
-  <div>
-    <b-container class="home">
-      <b-row gutter="30px">
-        <b-col cols="12">
-          <div style="display: flex;margin-bottom:30px">
-            <b-input-group>
-              <b-form-input
-                type="search"
-                placeholder="Enter a name ..."
-              ></b-form-input>
-            </b-input-group>
-            <b-form-select v-model="sort" :options="sorts"></b-form-select>
-          </div>
-        </b-col>
-        <b-col sm="12" md="6" lg="6" xl="4" v-for="i in 10" :key="i"
-          ><ContactCard
-            :firstname="contact.firstname"
-            :lastname="contact.lastname"
-            :age="contact.age"
-            :email="contact.email"
-            :companyname="contact.companyname"
-        /></b-col>
-      </b-row>
-    </b-container>
-    <div class="add-contact-button">
-      <b-icon-plus
-        style="cursor:pointer;"
-        variant="primary"
-        font-scale="2"
-        @click="showModal"
-      ></b-icon-plus>
+  <b-card class="card-container">
+    <div class="card-header" @click="showModal">
+      <h2 class="name">
+        <span>{{ firstname }}</span> <span>{{ lastname }}</span>
+      </h2>
     </div>
-        <b-modal ref="add-modal" title="Add Contact">
+    <div class="card-body">
+      <span class="age"
+        >Age: <strong>{{ age }}</strong></span
+      >
+      <span class="email"
+        >Email: <strong>{{ email }}</strong></span
+      >
+      <span class="companyname"
+        >Company name: <strong>{{ companyname }}</strong></span
+      >
+    </div>
+    <div class="delete-button">
+      <b-icon-trash
+        style="cursor:pointer;color:black"
+        font-scale="2"
+        @mouseover="deleteHover = true"
+        v-if="!deleteHover"
+      ></b-icon-trash>
+      <b-icon-trash-fill
+        @mouseleave="deleteHover = false"
+        style="cursor:pointer;"
+        variant="danger"
+        font-scale="2"
+        @click="confirm()"
+        v-else
+      ></b-icon-trash-fill>
+    </div>
+    <b-modal ref="edit-modal" title="Edit Contact" modal-ok="Edit">
       <form ref="form" @submit.stop.prevent="handleSubmit">
         <b-form-group
           label="First Name"
@@ -41,7 +42,7 @@
         >
           <b-form-input
             id="firstname-input"
-            v-model="contactEmpty.firstname"
+            v-model="firstname"
             :state="lastnameState"
             required
           ></b-form-input>
@@ -54,7 +55,7 @@
         >
           <b-form-input
             id="lastname-input"
-            v-model="contactEmpty.lastname"
+            v-model="lastname"
             :state="lastnameState"
             required
           ></b-form-input>
@@ -67,7 +68,7 @@
         >
           <b-form-input
             id="age-input"
-            v-model="contactEmpty.age"
+            v-model="age"
             :state="ageState"
             required
           ></b-form-input>
@@ -80,7 +81,7 @@
         >
           <b-form-input
             id="email-input"
-            v-model="contactEmpty.email"
+            v-model="email"
             :state="emailState"
             required
           ></b-form-input>
@@ -93,55 +94,54 @@
         >
           <b-form-input
             id="companyname-input"
-            v-model="contactEmpty.companyname"
+            v-model="companyname"
             :state="companynameState"
             required
           ></b-form-input>
         </b-form-group>
       </form>
     </b-modal>
-  </div>
+  </b-card>
 </template>
-
 <script>
-import ContactCard from "../components/ContactCard.vue";
-
 export default {
-  name: "Home",
-  components: {
-    ContactCard,
+  name: "contact card",
+  props: {
+    firstname: {
+      type: String,
+      required: true,
+    },
+    lastname: {
+      type: String,
+      required: true,
+    },
+    age: {
+      type: Number,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+    },
+    companyname: {
+      type: String,
+      required: true,
+    },
   },
   data() {
     return {
-      contact: {
-        firstname: "eray",
-        lastname: "tufan",
-        age: 26,
-        email: "eray.tufan@brainstork.com",
-        companyname: "brainstork",
-      },
-      contactEmpty: {
-        firstname: "",
-        lastname: "",
-        age: null,
-        email: "",
-        companyname: "",
-      },
+      deleteHover: false,
       firstnameState: null,
       lastnameState: null,
       ageState: null,
       emailState: null,
       companynameState: null,
-      sort: 1,
-      sorts: [
-        { value: 1, text: "age" },
-        { value: 2, text: "company name" },
-      ],
+      confirmDelete: "",
     };
   },
   methods: {
-     showModal() {
-      this.$refs["add-modal"].show();
+    showModal() {
+      this.$refs["edit-modal"].show();
     },
     checkFormValidity() {
       const valid = this.$refs.form.checkValidity();
@@ -158,23 +158,41 @@ export default {
         this.$bvModal.hide("edit-modal");
       });
     },
+    confirm() {
+      this.confirmDelete = "";
+      this.$bvModal
+        .msgBoxConfirm("Please confirm that you want to delete this contact.", {
+          title: "Please Confirm",
+          size: "sm",
+          buttonSize: "sm",
+          okVariant: "danger",
+          okTitle: "YES",
+          cancelTitle: "NO",
+          footerClass: "p-2",
+          hideHeaderClose: false,
+          centered: true,
+        })
+        .then((value) => {
+          this.confirmDelete = value;
+        })
+
+    },
   },
 };
 </script>
 <style scoped>
-.add-contact-button {
-  position: sticky;
-  bottom: 10px;
-  left: 10px;
-  height: 50px;
-  width: 50px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50%;
-  border: 1px solid #0d6efd;
+.card-container {
+  background-color: #004349;
+  color: white;
+  margin-bottom: 30px;
 }
-.add-contact-button:hover{
-  background-color: #0d6dfd2d;
+.card-body {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+.delete-button {
+  display: flex;
+  justify-content: flex-end;
 }
 </style>
